@@ -1,0 +1,14 @@
+package {{.App}}web
+
+import (
+	"{{.Mod}}/lib/{{.App}}_web/controllers"
+
+	"github.com/go-chi/chi/v5"
+)
+
+// Entry point of router
+func route(root chi.Router) {
+	root.Get("/", controllers.Index)
+}
+
+// Middlewares

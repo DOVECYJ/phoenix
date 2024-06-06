@@ -1,0 +1,29 @@
+env = 'dev'
+
+[http]
+addr = ':8080'
+
+{{- if not .NoDatabase}}
+[db]
+{{- if eq .Database "mysql"}}
+host = 'localhost'
+port = 3306
+database = '{{.Name}}_dev'
+username = 'root'
+password = 'root'
+{{- else if eq .Database "pgsql"}}
+host = 'localhost'
+port = 5432
+database = '{{.Name}}_dev'
+username = 'root'
+password = 'root'
+{{- else if eq .Database "sqlite3"}}
+name = '{{.Name}}_dev.db'
+{{end}}
+{{- end}}
+
+{{- if not .NoRedis}}
+[redis]
+addr = '127.0.0.1:6379'
+password = ''
+{{- end}}

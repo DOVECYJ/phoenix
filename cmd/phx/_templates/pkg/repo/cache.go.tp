@@ -1,0 +1,26 @@
+package repo
+
+import (
+	"context"
+	"time"
+
+	"github.com/redis/go-redis/v9"
+	"github.com/spf13/viper"
+)
+
+var (
+	Redis *redis.Client
+)
+
+func ConfigCache() {
+	Redis = redis.NewClient(&redis.Options{
+		Addr:        viper.GetString("redis.addr"),
+		Password:    viper.GetString("redis.password"),
+		DialTimeout: 5 * time.Second,
+	})
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if err := Redis.Ping(ctx).Err(); err != nil {
+		panic(err)
+	}
+}

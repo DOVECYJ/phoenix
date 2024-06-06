@@ -1,0 +1,64 @@
+package {{.App}}web
+
+import (
+	"context"
+	"errors"
+	"net/http"
+	"time"
+
+	"github.com/DOVECYJ/phoenix/router"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/httprate"
+	"github.com/spf13/viper"
+	"golang.org/x/exp/slog"
+)
+
+var (
+	endpoint *http.Server
+)
+
+// Set common middlewares
+// Import router
+func StartHTTP(ch chan<- error) {
+	// register router
+	root := chi.NewRouter()
+	root.Use(middleware.RequestID)
+	root.Use(middleware.RealIP)
+	root.Use(middleware.Logger)
+	root.Use(middleware.Recoverer)
+	root.Use(middleware.Timeout(60 * time.Second))
+	root.Use(httprate.LimitByIP(100, 1*time.Minute))
+	root.Route("/", route)
+	{{if not .NoHtml}}
+	router.ServeStatic(root, "/assets", "assets")
+	{{end}}
+	router.PrintRouters(root)
+
+	// start http service
+	addr := viper.GetString("http.addr")
+	endpoint = &http.Server{Addr: addr, Handler: root}
+	slog.Info("server start", "addr", addr)
+
+	err := endpoint.ListenAndServe()
+	if err != nil {
+		if errors.Is(err, http.ErrServerClosed) {
+			close(ch)
+			slog.Info("server stoped normal")
+			return
+		}
+		slog.Error("server unexpectedly stoped", "error", err)
+	}
+	ch <- err
+}
+
+func StopHTTP() {
+	if endpoint == nil {
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := endpoint.Shutdown(ctx); err != nil {
+		slog.Error("server shutdown", "error", err)
+	}
+}

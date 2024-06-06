@@ -1,0 +1,48 @@
+package pagehtml
+
+import . "{{.Mod}}/lib/{{.App}}_web/components"
+
+templ Index() {
+	@Layout() {
+		<div class="container pt-5">
+			<div class="row clearfix">
+				<div class="col-md-12 column">
+					<div class="jumbotron">
+						<img src="/assets/image/phoenix.png" class="img-thumbnail"/>
+						<h1 class="display-4">Welcome!</h1>
+						<p class="lead">Welcome to use phoenx. This is the welcome page of initial project, it's sample and easy to use, wish you have fun phoenix.</p>
+						<hr class="my-4"/>
+						<p>For use guide to start with phoenix, follow the document on github.</p>
+						<a class="btn btn-primary btn-lg" href="https://github.com/DOVECYJ/phoenix" target="_blank" role="button">Learn more</a>
+					</div>
+				</div>
+			</div>
+			<div class="row clearfix">
+				<div class="col-md-4 column">
+					<h2>
+						Quick Start
+					</h2>
+					<p>
+						Use the code generation tool to quickly create a project template. Run <code>phx new hello</code> in your project directory to generate a project named hello. And we also have other commands to generate context code.
+					</p>
+				</div>
+				<div class="col-md-4 column">
+					<h2>
+						Easy Use
+					</h2>
+					<p>
+						We hope to help you deal with annoying things such as logging, configuration and monitoring, so that you can concentrate on writing business code. And provide a humanized API, and try to write more code with the least number of keystrokes.
+					</p>
+				</div>
+				<div class="col-md-4 column">
+					<h2>
+						Growing
+					</h2>
+					<p>
+						This is a framework that imitates the Phoenix framework of Elixir. Although Phoenix is excellent, there are many differences between Go and Elixir. We will absorb the excellent design of Phoenix and constantly optimize it in practice.
+					</p>
+				</div>
+			</div>
+		</div>
+	}
+}

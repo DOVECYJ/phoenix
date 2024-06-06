@@ -1,0 +1,21 @@
+package main
+
+import (
+	"flag"
+	"{{.Mod}}/lib/{{.App}}"
+
+	"github.com/DOVECYJ/phoenix"
+)
+
+func main() {
+	configfile := flag.StringVar("config", "application.toml", "--config=application.toml")
+	flag.Parse()
+
+	// common initialize
+	phoenix.MustLoadConfig(*configfile)
+	phoenix.MustConfigEnv()
+	phoenix.MustConfigSlog()
+
+	// run applications
+	phoenix.RunApplications({{.App}}.NewApplication())
+}

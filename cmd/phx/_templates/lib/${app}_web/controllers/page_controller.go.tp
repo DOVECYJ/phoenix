@@ -1,0 +1,19 @@
+package controllers
+
+import (
+	"net/http"
+	{{- if not .NoHtml}}
+	pagehtml "{{.Mod}}/lib/{{.App}}_web/controllers/page_html"
+	{{end}}
+	"github.com/DOVECYJ/phoenix/render"
+)
+
+{{if .NoHtml}}
+func Index(w http.ResponseWriter, r *http.Request) {
+	render.String(w, "Welcome to start with phoenix!")
+}
+{{else}}
+func Index(w http.ResponseWriter, r *http.Request) {
+	render.HTML(w, pagehtml.Index())
+}
+{{end}}

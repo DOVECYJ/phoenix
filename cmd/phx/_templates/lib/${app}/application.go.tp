@@ -1,0 +1,53 @@
+package {{.App}}
+
+import (
+	{{.App}}web "{{.Mod}}/lib/{{.App}}_web"
+	{{- if not (and .NoDatabase .NoRedis)}}
+	"{{.Mod}}/pkg/repo"
+	{{- end}}
+	"log/slog"
+
+	"github.com/DOVECYJ/phoenix"
+)
+
+
+// The application defination
+type Application struct {
+	phoenix.Application
+}
+
+func NewApplication() *Application {
+	return &Application{
+		Application: phoenix.NewApplication("{{.App}}"),
+	}
+}
+
+func (a *Application) Start() {
+	{{- if not .NoDatabase}}
+	// Connect to database
+	repo.ConfigRepo()
+	{{- end}}
+	{{- if not .NoRedis}}
+	// Connect to redis
+	repo.ConfigCache()
+	{{end}}
+
+	// Start HTTP service
+	ch := make(chan error)
+	go {{.App}}web.StartHTTP(ch)
+	go func() {
+		for err := range ch {
+			if err == nil {
+				break
+			}
+			slog.Info("restarting server...", "application", a.Name())
+			go {{.App}}web.StartHTTP(ch)
+			slog.Info("server restarted", "application", a.Name())
+		}
+		slog.Info("server quit", "application", a.Name())
+	}()
+}
+
+func (a *Application) Stop() {
+	{{.App}}web.StopHTTP()
+}
