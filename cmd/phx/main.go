@@ -29,7 +29,10 @@ var (
 //	phx gen.api user User --table users --fields Name:string --app hello
 //	phx build
 //	phx run
-//	phx migrate/rollback
+//	phx migrate
+//	phx rollback
+//	phx rollback --s 1
+//	phx rollback --v 202405061234
 func main() {
 	app := &cli.App{
 		Version: "v0.0.1",
@@ -145,7 +148,8 @@ func main() {
 						modelParam      = new(modelParam)
 						contextParam    = new(contextParam)
 						controllerParam = new(controllerParam)
-						migrateParam    = new(migrationParam)
+						migrationParam  = new(migrationParam)
+						migrateParam    = new(migrateParam)
 						indexHtmlParam  = new(indexHtmlParam)
 						newHtmlParam    = new(newHtmlParam)
 						editHtmlParam   = new(editHtmlParam)
@@ -155,17 +159,19 @@ func main() {
 						modelParam,
 						contextParam,
 						controllerParam,
-						migrateParam,
+						migrationParam,
 						indexHtmlParam,
 						newHtmlParam,
 						editHtmlParam,
 						showHtmlParam); err != nil {
 						return err
 					}
+					migrateParam.bindMigration(migrationParam)
 					if err := generateCode(ctx.IsSet("mod"), ctx.IsSet("app"),
 						modelParam,
 						contextParam,
 						controllerParam,
+						migrationParam,
 						migrateParam,
 						indexHtmlParam,
 						newHtmlParam,
@@ -180,10 +186,10 @@ func main() {
 						"lib/%s_web/router.go:\n\n\t"+
 						"root.Route(\"/%s\", router.Resource(controllers.%sController{}))\n",
 						controllerParam.App, controllerParam.Path, controllerParam.Entity)
-					if migrateParam.created() {
+					if !migrateParam.created() {
 						fmt.Printf("\nAdd the migration to your migrate in\n"+
 							"priv/repo/migrate.go\n\n\t"+
-							"m.Register(%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s)\n\n",
+							"{%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s},\n\n",
 							migrateParam.Version, migrateParam.Entity, migrateParam.Entity)
 					}
 					return nil
@@ -214,26 +220,29 @@ func main() {
 						modelParam      = new(modelParam)
 						contextParam    = new(contextParam)
 						controllerParam = new(apiControllerParam)
-						migrateParam    = new(migrationParam)
+						migrationParam  = new(migrationParam)
+						migrateParam    = new(migrateParam)
 					)
 					if err := bindAndValide(ctx,
 						modelParam,
 						contextParam,
 						controllerParam,
-						migrateParam); err != nil {
+						migrationParam); err != nil {
 						return err
 					}
+					migrateParam.bindMigration(migrationParam)
 					if err := generateCode(ctx.IsSet("mod"), ctx.IsSet("app"),
 						modelParam,
 						contextParam,
 						controllerParam,
+						migrationParam,
 						migrateParam); err != nil {
 						return err
 					}
-					if migrateParam.created() {
+					if !migrateParam.created() {
 						fmt.Printf("\nAdd the migration to your migrate in\n"+
 							"priv/repo/migrate.go\n\n\t"+
-							"m.Register(%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s)\n\n",
+							"{%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s},\n\n",
 							migrateParam.Version, migrateParam.Entity, migrateParam.Entity)
 					}
 					return nil
@@ -261,26 +270,29 @@ func main() {
 				},
 				Action: func(ctx *cli.Context) error {
 					var (
-						modelParam   = new(modelParam)
-						contextParam = new(contextParam)
-						migrateParam = new(migrationParam)
+						modelParam     = new(modelParam)
+						contextParam   = new(contextParam)
+						migrationParam = new(migrationParam)
+						migrateParam   = new(migrateParam)
 					)
 					if err := bindAndValide(ctx,
 						modelParam,
 						contextParam,
-						migrateParam); err != nil {
+						migrationParam); err != nil {
 						return err
 					}
+					migrateParam.bindMigration(migrationParam)
 					if err := generateCode(ctx.IsSet("mod"), ctx.IsSet("app"),
 						modelParam,
 						contextParam,
+						migrationParam,
 						migrateParam); err != nil {
 						return err
 					}
-					if migrateParam.created() {
+					if !migrateParam.created() {
 						fmt.Printf("\nAdd the migration to your migrate in\n"+
 							"priv/repo/migrate.go\n\n\t"+
-							"m.Register(%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s)\n\n",
+							"{%s, migrations.MigrateCreate%s, migrations.RollbackCreate%s},\n\n",
 							migrateParam.Version, migrateParam.Entity, migrateParam.Entity)
 					}
 					return nil
@@ -312,13 +324,16 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "config",
-						Value: "application.toml",
+						Value: "",
 						Usage: "--config application.toml",
 					},
 				},
 				Action: func(ctx *cli.Context) (err error) {
-					err = cmd.Cmd("go run priv/repo/migrate.go --migrate --config " + ctx.String("config")).Run()
-					if err == nil {
+					smd := "go run priv/repo/migrate.go migrate"
+					if ctx.IsSet("config") {
+						smd = smd + " --config " + ctx.String("config")
+					}
+					if err = cmd.Cmd(smd).Run(); err == nil {
 						fmt.Println("Migrate Success!")
 					}
 					return
@@ -328,6 +343,16 @@ func main() {
 				Name:  "rollback",
 				Usage: "rollback migration",
 				Flags: []cli.Flag{
+					&cli.IntFlag{
+						Name:  "v",
+						Value: -1,
+						Usage: "--v 20240306123421",
+					},
+					&cli.IntFlag{
+						Name:  "n",
+						Value: -1,
+						Usage: "--n 1",
+					},
 					&cli.StringFlag{
 						Name:  "config",
 						Value: "application.toml",
@@ -335,7 +360,17 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) (err error) {
-					err = cmd.Cmd("go run priv/repo/migrate.go --rollback --config " + ctx.String("config")).Run()
+					smd := "go run priv/repo/migrate.go rollback"
+					if ctx.IsSet("v") {
+						smd = smd + " --v " + ctx.String("v")
+					}
+					if ctx.IsSet("n") {
+						smd = smd + " --n " + ctx.String("n")
+					}
+					if ctx.IsSet("config") {
+						smd = smd + " --config " + ctx.String("config")
+					}
+					err = cmd.Cmd(smd).Run()
 					if err == nil {
 						fmt.Println("Rollback Success!")
 					}

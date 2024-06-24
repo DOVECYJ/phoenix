@@ -1,9 +1,10 @@
 env = 'dev'
+service = '{{.Name}}'
 
 [http]
 addr = ':8080'
 
-{{- if not .NoDatabase}}
+{{if not .NoDatabase}}
 [db]
 {{- if eq .Database "mysql"}}
 host = 'localhost'
@@ -22,7 +23,7 @@ name = '{{.Name}}_dev.db'
 {{end}}
 {{- end}}
 
-{{- if not .NoRedis}}
+{{if not .NoRedis}}
 [redis]
 addr = '127.0.0.1:6379'
 password = ''

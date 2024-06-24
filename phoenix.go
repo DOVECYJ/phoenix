@@ -180,3 +180,9 @@ type CtxKey string
 var (
 	ID = CtxKey("id")
 )
+
+func PanicError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

@@ -121,8 +121,10 @@ func (p *migrationParam) executeTemplate() error {
 
 func (p *migrationParam) rollback() {
 	if p._created {
-		os.Remove(p.filename)
-		fmt.Println("- removed:", p.filename)
+		if err := os.Remove(p.filename); err == nil {
+			fmt.Println("- removed:", p.filename)
+			p._created = false
+		}
 	}
 }
 
