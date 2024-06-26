@@ -28,3 +28,10 @@ name = '{{.Name}}_dev.db'
 addr = '127.0.0.1:6379'
 password = ''
 {{- end}}
+
+[log]
+name = 'app.log'
+size = 100 #MB
+backups = 1000
+age = 30
+level = 'info'

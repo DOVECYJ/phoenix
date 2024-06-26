@@ -13,8 +13,6 @@ func main() {
 
 	// common initialize
 	phoenix.MustLoadConfig(*configfile)
-	phoenix.MustConfigEnv()
-	phoenix.MustConfigSlog()
 
 	// run applications
 	phoenix.RunApplications({{.App}}.NewApplication())

@@ -20,7 +20,7 @@ go install github.com/a-h/templ/cmd/templ@latest
 
 使用 `phx` 新建项目：`phx new hello` ，新项目目录结构如下：
 
-**hello**
+hello
 |---- _build
 |---- assets
 |-------- css

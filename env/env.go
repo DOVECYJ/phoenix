@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/DOVECYJ/phoenix"
 	"github.com/spf13/viper"
 )
+
+func init() {
+	phoenix.AfterLoadCondig("env", ConfigEnv)
+}
 
 // Program's running environment
 type ENV string
