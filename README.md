@@ -4,11 +4,11 @@
 
 ## 安装
 
+安装phoenix命令行工具 `phx` ：
+
 ```
 go install github.com/chenyj/phoenix/cmd/phx@latest
 ```
-
-执行上面的命令会安装phoenix命令行工具 `phx`。
 
 `phx` 需要依赖 [templ](https://github.com/a-h/templ) , 通过下面的命令安装:
 
@@ -52,7 +52,7 @@ go install github.com/a-h/templ/cmd/templ@latest
 - `assets` 是前端资源文件存放目录，如css，js等，项目默认使用bootstrap4。
 - `config` 下存放的是项目配置文件，默认采用toml格式的配置文件。
 - `lib` 是项目核心代码的存放目录，业务逻辑和web层的代码都在这里。
-- `pkg` 内是本项目中使用的工能相对完整独立的包，将来可能 抽离出去做为独立的库。
+- `pkg` 内是本项目中使用的功能相对完整独立的包，将来可能抽离出去做为独立的库。
 - `priv` 是项目私有文件，包括数据库模型迁移等，不应该被任何包引用。
 - `main.go`是项目启动入口，这里会做一些公共初始化，如加载配置文件，配置日志等，以及启动application。
 
@@ -60,11 +60,11 @@ go install github.com/a-h/templ/cmd/templ@latest
 
 - `hello` 是业务逻辑层，简单来说就是放CURD代码的。
 - `application.go` 是定义应用的地方，应用的定义放在业务逻辑层。
-- `hello_web` 是应用的web层，这里只有和web相关的代码，在项目增长过程中，应该始终保持该层是"轻薄"的。
+- `hello_web` 是应用的web接口层，这里只有和web相关的代码，在项目增长过程中，应该始终保持该层是"轻薄"的。
 - `components` 是存放公共组件的地方，所谓组件可以简单理解为web页面模板。
 - `controllers` 是MVC中的C所在的地方，在这里调用业务层，实现web功能。
 - `endpoint.go` 是web层的入口，它会被application调用，从而为application提供web接口。
-- `router.go` 是路由器，在这里实现controller的路由。
+- `router.go` 是路由器，在这里实现controller的路由注册。
 
 项目默认使用MySQL数据库，打开项目目录下的 `config/application.toml` 可以看到数据库配置，需要根据实际情况修改。你可以通过 `--database` 选项来修改数据库，支持以下3种：
 
@@ -201,6 +201,8 @@ phx migrate
 ```
 phx rollback
 ```
+
+回滚支持通过 `--n` 选择指定回滚次数，或通过 `--v` 选项指定回调到某个版本，包括被指定的版本。
 
 默认会使用 `config/application.toml` 配置文件中的数据配置，如需指定其他配置文件，可以使用 `--config myconfig.toml` 选项。
 

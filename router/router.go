@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 
 	"github.com/DOVECYJ/phoenix/middleware"
@@ -96,30 +95,27 @@ func ResourceExcept(rsc IResource, actions ...string) func(chi.Router) {
 		slog.Error("resource can not be nil")
 		panic("nil resource")
 	}
-	return func(r chi.Router) {
-		if !slices.Contains(actions, "index") {
-			r.Get("/", rsc.Index)
-		}
-		if !slices.Contains(actions, "edit") {
-			r.With(middleware.FetchID).Get("/{id}/edit", rsc.Edit)
-		}
-		if !slices.Contains(actions, "new") {
-			r.Get("/new", rsc.New)
-		}
-		if !slices.Contains(actions, "show") {
-			r.With(middleware.FetchID).Get("/{id}", rsc.Show)
-		}
-		if !slices.Contains(actions, "create") {
-			r.Post("/", rsc.Create)
-		}
-		if !slices.Contains(actions, "update") {
-			r.With(middleware.FetchID).Patch("/{id}", rsc.Update)
-			r.With(middleware.FetchID).Put("/{id}", rsc.Update)
-		}
-		if !slices.Contains(actions, "delete") {
-			r.With(middleware.FetchID).Delete("/{id}", rsc.Delete)
-		}
+	allActions := map[string]struct{}{
+		"index":  {},
+		"edit":   {},
+		"new":    {},
+		"show":   {},
+		"create": {},
+		"update": {},
+		"delete": {},
 	}
+	for _, a := range actions {
+		delete(allActions, a)
+	}
+	if len(allActions) == 0 {
+		return func(r chi.Router) {}
+	}
+
+	only := make([]string, 0, len(allActions))
+	for k := range allActions {
+		only = append(only, k)
+	}
+	return ResourceOnly(rsc, only...)
 }
 
 // Print routed path.

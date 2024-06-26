@@ -35,43 +35,45 @@ var (
 //	phx rollback --v 202405061234
 func main() {
 	app := &cli.App{
-		Version: "v0.0.1",
+		Name:        "phx",
+		Description: "phoenix command line tool",
+		Version:     "v0.0.1",
 		Commands: []*cli.Command{
 			{ // new project
-				Name: "new",
+				Name:  "new",
+				Usage: "create a new project",
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "mod",
+						Usage: "go module name",
 						Value: "",
-						Usage: "--mod github.com/chenyj/hello",
 					},
 					&cli.StringFlag{
 						Name:  "app",
+						Usage: "application name",
 						Value: "",
-						Usage: "--app hello",
 					},
 					&cli.StringFlag{
 						Name:  "database",
+						Usage: "database to use",
 						Value: "mysql",
-						Usage: "--database sqlite3",
 					},
 					&cli.BoolFlag{
 						Name:  "no-database",
+						Usage: "disable database",
 						Value: false,
-						Usage: "--no-database",
 					},
 					&cli.BoolFlag{
 						Name:  "no-redis",
+						Usage: "disable redis",
 						Value: false,
-						Usage: "--no-redis",
 					},
 					&cli.BoolFlag{
 						Name:  "no-html",
+						Usage: "disable html",
 						Value: false,
-						Usage: "--no-html",
 					},
 				},
-				Usage: "create a new project",
 				Action: func(ctx *cli.Context) error {
 					var c config
 					if err := bindAndValide(ctx, &c); err != nil {
@@ -129,18 +131,18 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "app",
+						Usage: "application name",
 						Value: "",
-						Usage: "--app hello",
 					},
 					&cli.StringFlag{
 						Name:  "table",
+						Usage: "database table name",
 						Value: "",
-						Usage: "--table users",
 					},
 					&cli.StringSliceFlag{
 						Name:  "fields",
+						Usage: "entity fields(Field:Type,Field:Type...)",
 						Value: nil,
-						Usage: "--fields Name:string,Age:int",
 					},
 				},
 				Action: func(ctx *cli.Context) error {
@@ -201,18 +203,18 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "app",
+						Usage: "application name",
 						Value: "",
-						Usage: "--app hello",
 					},
 					&cli.StringFlag{
 						Name:  "table",
+						Usage: "database table name",
 						Value: "",
-						Usage: "--table users",
 					},
 					&cli.StringSliceFlag{
 						Name:  "fields",
+						Usage: "entity fields(Field:Type,Field:Type...)",
 						Value: nil,
-						Usage: "--fields Name:string,Age:int",
 					},
 				},
 				Action: func(ctx *cli.Context) error {
@@ -254,18 +256,18 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "app",
+						Usage: "application name",
 						Value: "",
-						Usage: "--app hello",
 					},
 					&cli.StringFlag{
 						Name:  "table",
+						Usage: "database table name",
 						Value: "",
-						Usage: "--table users",
 					},
 					&cli.StringSliceFlag{
 						Name:  "fields",
+						Usage: "entity fields(Field:Type,Field:Type...)",
 						Value: nil,
-						Usage: "--fields Name:string,Age:int",
 					},
 				},
 				Action: func(ctx *cli.Context) error {
@@ -324,8 +326,8 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.StringFlag{
 						Name:  "config",
+						Usage: "config filename",
 						Value: "",
-						Usage: "--config application.toml",
 					},
 				},
 				Action: func(ctx *cli.Context) (err error) {
@@ -345,18 +347,18 @@ func main() {
 				Flags: []cli.Flag{
 					&cli.IntFlag{
 						Name:  "v",
+						Usage: "version to rollback to",
 						Value: -1,
-						Usage: "--v 20240306123421",
 					},
 					&cli.IntFlag{
 						Name:  "n",
+						Usage: "steps to rollback",
 						Value: -1,
-						Usage: "--n 1",
 					},
 					&cli.StringFlag{
 						Name:  "config",
+						Usage: "config filename",
 						Value: "application.toml",
-						Usage: "--config application.toml",
 					},
 				},
 				Action: func(ctx *cli.Context) (err error) {
