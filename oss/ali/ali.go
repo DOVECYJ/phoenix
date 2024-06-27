@@ -2,6 +2,7 @@ package ali
 
 import (
 	"io"
+	"os"
 	"path"
 	"time"
 
@@ -91,19 +92,59 @@ type bucket struct {
 }
 
 func (b *bucket) Write(r io.Reader) error {
-	return b.bucket.PutObject(b.filename, r, b.opts...)
+	err := b.bucket.PutObject(b.filename, r, b.opts...)
+	if err == nil {
+		return nil
+	}
+	switch err := err.(type) {
+	case oss.ServiceError:
+		if err.StatusCode == 409 && err.Code == "FileAlreadyExists" {
+			return os.ErrExist
+		}
+	}
+	return err
 }
 
 func (b *bucket) WriteFile(name string) error {
-	return b.bucket.PutObjectFromFile(b.filename, name, b.opts...)
+	err := b.bucket.PutObjectFromFile(b.filename, name, b.opts...)
+	if err == nil {
+		return nil
+	}
+	switch err := err.(type) {
+	case oss.ServiceError:
+		if err.StatusCode == 409 && err.Code == "FileAlreadyExists" {
+			return os.ErrExist
+		}
+	}
+	return err
 }
 
 func (b *bucket) Read() (io.ReadCloser, error) {
-	return b.bucket.GetObject(b.filename)
+	r, err := b.bucket.GetObject(b.filename)
+	if err == nil {
+		return r, nil
+	}
+	switch err := err.(type) {
+	case oss.ServiceError:
+		if err.StatusCode == 404 && err.Code == "NoSuchKey" {
+			return r, os.ErrNotExist
+		}
+	}
+	return r, err
 }
 
 func (b *bucket) ReadToFile(dest string) error {
-	return b.bucket.GetObjectToFile(b.filename, dest)
+	err := b.bucket.GetObjectToFile(b.filename, dest)
+	if err == nil {
+		return nil
+	}
+	switch err := err.(type) {
+	case oss.ServiceError:
+		if err.StatusCode == 404 && err.Code == "NoSuchKey" {
+			return os.ErrNotExist
+		}
+	}
+	return err
 }
 
 func (b *bucket) IsExist() (bool, error) {
