@@ -7,24 +7,31 @@ import (
 	"log/slog"
 	"sync"
 	"time"
-
-	errs "github.com/pkg/errors"
 )
 
 var (
 	ErrClosed  = errors.New("work flow is closed")
 	ErrTimeout = errors.New("send timeout")
-	ErrRetry   = errors.New("please retry")
 	ErrNoFlow  = errors.New("no flows available")
-	ErrAbort   = errors.New("abort")
+	Abort      = abort{}
 )
 
 func Retry(err error) error {
-	return errs.Wrap(ErrRetry, err.Error())
+	return retry{err}
 }
 
-func Abort(err error) error {
-	return errs.Wrap(ErrAbort, err.Error())
+type retry struct {
+	err error
+}
+
+func (r retry) Error() string {
+	return r.err.Error()
+}
+
+type abort struct{}
+
+func (a abort) Error() string {
+	return "abort"
 }
 
 type Goto string
@@ -202,10 +209,12 @@ func (w *workFlow[T]) Send(t T, opts ...RunOpt) error {
 		startStep: opt.startStep,
 		data:      t,
 	}
+	// 无超时发送
 	if opt.timeout == 0 {
 		w.input <- p
 		return nil
 	}
+	// 带超时发送
 	select {
 	case w.input <- p:
 		return nil
@@ -243,9 +252,7 @@ func (w *workFlow[T]) Run() {
 
 	go func() {
 		for p := range w.output {
-			if w.finalFunc != nil && p.startStep == "" {
-				w.handle(p)
-			}
+			w.handle(p)
 		}
 		close(w.done) // 所有流程都已结束
 	}()
@@ -265,7 +272,7 @@ func (w *workFlow[T]) ShutDown() {
 }
 
 func (w *workFlow[T]) handle(t packet[T]) {
-	if w.finalFunc == nil {
+	if w.finalFunc == nil || t.startStep != "" {
 		return
 	}
 	// 防止panic
@@ -356,27 +363,28 @@ func (s *step[T]) run(out chan packet[T]) (in chan packet[T]) {
 					output, err := s.handle(input)
 					// slog.Debug("handle result", "name", s.name, "output", output, "err", err)
 
-					// handle error
-					gotoStep, ok := err.(Goto)
-					switch {
-					case err == nil:
+					if err == nil {
 						out <- output // goto next step
 						continue
-					case ok:
-						output.startStep = string(gotoStep)
+					}
+					// handle error
+					switch err := err.(type) {
+					case Goto:
+						output.startStep = string(err)
 						out <- output
 						continue
-					case errors.Is(err, ErrAbort):
+					case abort:
 						// s.flow.output <- output
 						continue
-					case errors.Is(err, ErrRetry):
+					case retry:
 						if input.retry < s.maxRetry {
 							input.retry++
 							time.Sleep(time.Millisecond)
 							goto RETRY // 原地重试
 						}
 						// 重试失败
-						fallthrough
+						// fallthrough
+						s.handleError(output, err.err)
 					default:
 						s.handleError(output, err)
 					}

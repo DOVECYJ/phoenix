@@ -108,7 +108,7 @@ func TestRetry(t *testing.T) {
 	w.AddFlow("retry", func(_ context.Context, i int) (int, error) {
 		t.Log("retry:", r)
 		r += 1
-		return i, ErrRetry
+		return i, Retry(nil)
 	}, MaxRetry(retry))
 
 	w.Run()
@@ -131,7 +131,7 @@ func TestAbort(t *testing.T) {
 	})
 	w.AddFlow(steps[1], func(_ context.Context, s []string) ([]string, error) {
 		r = append(r, steps[1])
-		return s, Abort(nil)
+		return s, Abort
 	})
 	w.AddFlow(steps[2], func(_ context.Context, s []string) ([]string, error) {
 		r = append(r, steps[2])
@@ -193,18 +193,21 @@ func TestFail(t *testing.T) {
 	}
 }
 
-func TestWrapRetry(t *testing.T) {
-	src := errors.New("some errro")
-	err := Retry(src)
-	if !errors.Is(err, ErrRetry) {
-		t.FailNow()
-	}
-}
+func TestFailRetry(t *testing.T) {
+	want := errors.New("some error")
+	var got error
+	w := New[struct{}]("test fail retry")
+	w.AddFlow("fail", func(_ context.Context, s struct{}) (struct{}, error) {
+		return struct{}{}, Retry(want)
+	})
+	w.OnFail(func(_ context.Context, s1 string, s2 struct{}, err error) {
+		got = err
+	})
+	w.Run()
+	w.Send(struct{}{})
+	w.ShutDown()
 
-func TestWrapAbort(t *testing.T) {
-	src := errors.New("some error")
-	err := Abort(src)
-	if !errors.Is(err, ErrAbort) {
-		t.Fatalf("%v\n", err)
+	if got != want {
+		t.FailNow()
 	}
 }
