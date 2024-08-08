@@ -264,30 +264,37 @@ func JsonAttr(r *http.Request) (params.Params, error) {
 	return params.ParseJSON(string(bs)), nil
 }
 
+// Get ID form r.Context() by key, the ID is int type.
 func ContextID(r *http.Request) int {
 	return r.Context().Value(phoenix.ID).(int)
 }
 
+// Get int valur form r.Context() by key.
 func ContextInt(r *http.Request, key string) int {
 	return r.Context().Value(phoenix.CtxKey(key)).(int)
 }
 
+// Get int64 valur form r.Context() by key.
 func ContextInt64(r *http.Request, key string) int64 {
 	return r.Context().Value(phoenix.CtxKey(key)).(int64)
 }
 
+// Get float32 valur form r.Context() by key.
 func ContextFloat32(r *http.Request, key string) float32 {
 	return r.Context().Value(phoenix.CtxKey(key)).(float32)
 }
 
+// Get float64 valur form r.Context() by key.
 func ContextFloat64(r *http.Request, key string) float64 {
 	return r.Context().Value(phoenix.CtxKey(key)).(float64)
 }
 
+// Get string valur form r.Context() by key.
 func ContextString(r *http.Request, key string) string {
 	return r.Context().Value(phoenix.CtxKey(key)).(string)
 }
 
-func ContextVal[T int | uint | int8 | uint8 | int16 | uint16 | int32 | uint32 | int64 | uint64 | float32 | float64 | string](r *http.Request, key string) T {
-	return r.Context().Value(key).(T)
+// Get value from r.Context() by key.
+func ContextVal[T any](r *http.Request, key string) T {
+	return r.Context().Value(phoenix.CtxKey(key)).(T)
 }

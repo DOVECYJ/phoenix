@@ -1,6 +1,6 @@
 @echo off
 
-set server=_build\platform.exe
+set server={{.Name}}.exe
 :: read server pid
 for /F %%i in ('type pid') do (set pid=%%i)
 :: check process status

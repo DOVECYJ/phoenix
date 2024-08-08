@@ -1,0 +1,72 @@
+#!/bin/bash
+
+dir=/
+server=./{{.Name}}
+
+is_running() {
+    cd $dir
+    pid=`cat pid`
+    id=`ps -ef | grep $pid | grep $server | grep -v grep | wc -l`
+    if [[ $pid = "1" ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+start_server() {
+    cd $dir
+    mkdir -p logs
+    nohup $server > logs/stdout.log 2>&1 &
+    sleep 1
+    is_running
+    if [ $? = "1" ]; then
+        echo success
+        exit 0
+    else
+        echo failed
+        exit 1
+    fi
+}
+
+case "$1" in
+    "start")
+        is_running
+        if [ $? = "1" ]; then
+            echo server is running
+        else
+            echo starting server...
+            start_server
+        fi
+        ;;
+    "restart")
+        is_running
+        if [ $? = "1" ]; then
+            echo stopping server...
+            kill -9 $pid
+        fi
+        echo restarting server...
+        start_server
+        ;;
+    "stop")
+        is_running
+        if [ $? = "1" ]; then
+            echo stopping server...
+            kill -9 $pid
+        else
+            echo server is not running
+        fi
+        ;;
+    "status")
+        echo server status...
+        is_running
+        if [ $? = "1" ]; then
+            echo server is running
+        else
+            echo server is gone
+        fi
+        ;;
+    *)
+        echo "USAGE: run.sh [start|restart|stop|status]"
+        exit 1
+esac

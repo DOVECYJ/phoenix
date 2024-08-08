@@ -58,7 +58,7 @@ func ConfigRepo() {
 {{else if eq .Database "sqlite3"}}
 // Config your database repository
 func ConfigRepo() {
-	dsn := viper.GetString("db.database")
+	dsn := viper.GetString("db.name")
 	if env.IsDev() {
 		slog.Info("connect sqlite3", "dsn", dsn)
 	}
